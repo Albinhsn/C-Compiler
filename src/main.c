@@ -1,7 +1,6 @@
 
 #include "common.h"
 #include "files.h"
-#include "parser.h"
 #include "scanner.h"
 #include <stdio.h>
 #include <stdlib.h>
@@ -23,18 +22,6 @@ int main(int argc, char** argv)
 
   sta_read_file(&arena, &file, argv[1]);
   init_scanner(&scanner, &arena, &file, argv[1]);
-
-  Parser parser  = {};
-
-  Arena  arena2  = {};
-  arena2.ptr     = 0;
-  arena2.memory  = (u64)malloc(size);
-  arena2.maxSize = size;
-
-  init_parser(&parser, &scanner, &arena2, 0, 0, 0);
-  parse(&parser);
-
-  free_parser(&parser);
 
   return 0;
 }
