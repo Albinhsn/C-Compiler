@@ -43,7 +43,16 @@ enum TokenType {
   TOKEN_COMPLEX,
   TOKEN_IMAGINARY,
 
-  TOKEN_CHARACTER_LITERAL,
+  // CONSTANTS
+  TOKEN_CHARACTER_CONSTANT,
+  TOKEN_FLOAT_CONSTANT,
+  TOKEN_FLOAT_HEX_CONSTANT,
+  TOKEN_BINARY_CONSTANT,
+  TOKEN_OCTAL_CONSTANT,
+  TOKEN_INT_CONSTANT,
+  TOKEN_INT_HEX_CONSTANT,
+  TOKEN_STRING_CONSTANT,
+
   TOKEN_LEFT_PAREN,
   TOKEN_RIGHT_PAREN,
   TOKEN_LEFT_BRACE,
@@ -84,9 +93,6 @@ enum TokenType {
   TOKEN_AND_BIT,
   TOKEN_OR_BIT,
   TOKEN_XOR,
-  TOKEN_INT_LITERAL,
-  TOKEN_STRING_LITERAL,
-  TOKEN_FLOAT_LITERAL,
   TOKEN_EOF
 
 };
@@ -100,7 +106,8 @@ struct Token {
 };
 typedef struct Token Token;
 
-Token *create_token(Arena *arena, TokenType type, String literal, i32 line, i32 index);
+Token *create_token(Arena *arena, TokenType type, String literal, i32 line,
+                    i32 index);
 void debug_token(Token *token);
 
 #endif

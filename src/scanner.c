@@ -125,7 +125,7 @@ static Token *parse_string(Scanner *scanner) {
   literal.buffer = (char *)&scanner->input->buffer[index];
   literal.len = scanner->index - index - 1;
 
-  return create_token(scanner->arena, TOKEN_STRING_LITERAL, literal,
+  return create_token(scanner->arena, TOKEN_STRING_CONSTANT, literal,
                       scanner->line, scanner->index);
 }
 
@@ -191,8 +191,8 @@ static Token *parse_hex(Scanner *scanner, i32 index) {
   literal.buffer = (char *)&scanner->input->buffer[index];
   literal.len = scanner->index - index;
 
-  return create_token(scanner->arena, TOKEN_INT_LITERAL, literal, scanner->line,
-                      scanner->index);
+  return create_token(scanner->arena, TOKEN_INT_CONSTANT, literal,
+                      scanner->line, scanner->index);
 }
 
 static Token *parse_binary(Scanner *scanner, i32 index) {
@@ -204,8 +204,8 @@ static Token *parse_binary(Scanner *scanner, i32 index) {
   String literal = {};
   literal.buffer = (char *)&scanner->input->buffer[index];
   literal.len = scanner->index - index;
-  return create_token(scanner->arena, TOKEN_INT_LITERAL, literal, scanner->line,
-                      scanner->index);
+  return create_token(scanner->arena, TOKEN_INT_CONSTANT, literal,
+                      scanner->line, scanner->index);
 }
 
 static Token *parse_pound_define(Scanner *scanner) {
@@ -216,7 +216,7 @@ static Token *parse_pound_define(Scanner *scanner) {
 }
 
 static void parse_decimal() {}
-static void parse_integer_suffix() {
+static Token *parse_integer_suffix(Scanner *scanner, Token *token) {
 
   // unsigned-suffix long-suffix (opt)
   // unsigned-suffix long-long-suffix
@@ -230,7 +230,12 @@ static void parse_integer_suffix() {
   // long-long-suffix
   //   ll LL
 }
-static void parse_octal() {}
+
+static inline bool is_valid_octal(char current) {
+  return '0' <= current && current <= '7';
+}
+
+static Token *parse_octal(Scanner *scanner, int index) { return 0; }
 static void parse_hexadecimal() {}
 
 static Token *parse_number(Scanner *scanner) {
@@ -243,36 +248,42 @@ static Token *parse_number(Scanner *scanner) {
   //  decimal-floating-constant
   //  hexadecimal-floating-constant
   i32 index = scanner->index - 1;
-  TokenType type = TOKEN_INT_LITERAL;
+  TokenType type = TOKEN_INT_CONSTANT;
 
   char current = advance(scanner);
-
+  Token *token;
   if (scanner->input->buffer[index] == '0') {
-    if (current == 'x') {
-      return parse_hex(scanner, index);
+    if (current == 'x' || current == 'X') {
+      token = parse_hex(scanner, index);
     } else if (current == 'b') {
-      return parse_binary(scanner, index);
+      token = parse_binary(scanner, index);
+    } else if (isdigit(current)) {
+      token = parse_octal(scanner, index);
+    } else {
+      // is just 0?
     }
-  }
 
-  while (!is_out_of_bounds(scanner) && isdigit(current)) {
-    current = advance(scanner);
-  }
-
-  if (current == '.') {
-    current = current_char(scanner);
-    type = TOKEN_FLOAT_LITERAL;
-
+  } else {
     while (!is_out_of_bounds(scanner) && isdigit(current)) {
       current = advance(scanner);
     }
+
+    if (current == '.') {
+      current = current_char(scanner);
+      type = TOKEN_FLOAT_CONSTANT;
+
+      while (!is_out_of_bounds(scanner) && isdigit(current)) {
+        current = advance(scanner);
+      }
+    }
+    scanner->index--;
+    String literal = {};
+    literal.buffer = (char *)&scanner->input->buffer[index];
+    literal.len = scanner->index - index;
+    token = create_token(scanner->arena, type, literal, scanner->line,
+                         scanner->index);
   }
-  scanner->index--;
-  String literal = {};
-  literal.buffer = (char *)&scanner->input->buffer[index];
-  literal.len = scanner->index - index;
-  return create_token(scanner->arena, type, literal, scanner->line,
-                      scanner->index);
+  return parse_integer_suffix(scanner, token);
 }
 
 Token *parse_character(Scanner *scanner) {
@@ -282,7 +293,7 @@ Token *parse_character(Scanner *scanner) {
   }
   literal.buffer = (char *)&scanner->input->buffer[scanner->index];
   literal.len = 1;
-  return create_token(scanner->arena, TOKEN_CHARACTER_LITERAL, literal,
+  return create_token(scanner->arena, TOKEN_CHARACTER_CONSTANT, literal,
                       scanner->line, scanner->index);
 }
 
@@ -552,7 +563,7 @@ Token *parse_token(Scanner *scanner) {
     String literal = {};
     int match_length = 2;
     if (isdigit(current_char(scanner))) {
-        // .5;
+      // .5;
 
     } else if (match_substring(scanner->input, scanner->index, "..",
                                match_length)) {
