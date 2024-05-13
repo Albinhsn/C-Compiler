@@ -1,0 +1,5 @@
+15 // int constant
+0x15 // int hex constant
+056 // octal
+'5' // character
+5.25 // float

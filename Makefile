@@ -8,6 +8,9 @@ SRCS = $(wildcard src/*.c)
 OBJS = $(patsubst src/%.c,obj/%.o,$(SRCS))
 
 
+t: 
+	gcc ./src/scanner.c ./src/token.c ./tests/test.c ./tests/test_common.c ./tests/scanner_tests.c ./src/files.c ./src/common.c -o test
+
 g: $(TARGET)
 $(TARGET): $(OBJS)
 	$(CC)  -o $@ $^ $(LDFLAGS)

@@ -4,6 +4,16 @@
 #include "common.h"
 
 enum TokenType {
+  // CONSTANTS
+  TOKEN_CHARACTER_CONSTANT,
+  TOKEN_FLOAT_CONSTANT,
+  TOKEN_FLOAT_HEX_CONSTANT,
+  TOKEN_BINARY_CONSTANT,
+  TOKEN_OCTAL_CONSTANT,
+  TOKEN_INT_CONSTANT,
+  TOKEN_INT_HEX_CONSTANT,
+  TOKEN_STRING_CONSTANT,
+
   // KEYWORDS
   TOKEN_AUTO,
   TOKEN_BREAK,
@@ -43,15 +53,6 @@ enum TokenType {
   TOKEN_COMPLEX,
   TOKEN_IMAGINARY,
 
-  // CONSTANTS
-  TOKEN_CHARACTER_CONSTANT,
-  TOKEN_FLOAT_CONSTANT,
-  TOKEN_FLOAT_HEX_CONSTANT,
-  TOKEN_BINARY_CONSTANT,
-  TOKEN_OCTAL_CONSTANT,
-  TOKEN_INT_CONSTANT,
-  TOKEN_INT_HEX_CONSTANT,
-  TOKEN_STRING_CONSTANT,
 
   TOKEN_LEFT_PAREN,
   TOKEN_RIGHT_PAREN,
@@ -109,5 +110,6 @@ typedef struct Token Token;
 Token *create_token(Arena *arena, TokenType type, String literal, i32 line,
                     i32 index);
 void debug_token(Token *token);
+const char *get_token_type_string(TokenType type);
 
 #endif

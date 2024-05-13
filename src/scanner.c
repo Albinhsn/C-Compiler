@@ -235,8 +235,14 @@ static inline bool is_valid_octal(char current) {
   return '0' <= current && current <= '7';
 }
 
-static Token *parse_octal(Scanner *scanner, int index) { return 0; }
-static void parse_hexadecimal() {}
+static Token *parse_octal(Scanner *scanner, int index) {
+  char current = advance(scanner);
+  while (!is_out_of_bounds(scanner) && is_valid_octal(current)) {
+    current = advance(scanner);
+  }
+
+  return 0;
+}
 
 static Token *parse_number(Scanner *scanner) {
   // integer-constant
