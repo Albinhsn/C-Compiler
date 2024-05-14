@@ -5,17 +5,27 @@
 #include "common.h"
 #include "scanner.h"
 #include "token.h"
+#include "precedence.h"
+
 
 typedef struct
 {
   Token*   current;
   Token*   previous;
-  AstNode* head;
+  AstNode* node;
   Scanner* scanner;
-  Arena*   arena;
 } Parser;
 
-void init_parser(Parser* parser, Arena* arena, Scanner* scanner);
-void parse(Parser* parser);
+
+typedef void         (*ParseFn)(Parser* parser, bool canAssign);
+
+typedef struct{
+  ParseFn prefix;
+  ParseFn infix;
+  Precedence precedence;
+} ParseRule;
+
+void init_parser(Parser* parser, Scanner* scanner);
+AstNode * parse(Parser* parser);
 
 #endif

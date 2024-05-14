@@ -157,9 +157,9 @@ static Token* parse_string(Scanner* scanner)
 
 static TokenType get_keyword(String literal)
 {
-  static const char* keywords[] = {"f",     "F",      "U",      "u",      "L",      "LL",     "l",       "ll",    "auto",     "break",  "case",     "char",  "const",    "continue", "default",
-                                   "do",    "double", "else",   "enum",   "extern", "float",  "for",     "goto",  "if",       "inline", "int",      "long",  "register", "restrict", "return",
-                                   "short", "signed", "sizeof", "static", "struct", "switch", "typedef", "union", "unsinged", "void",   "volatile", "while", "_Bool",    "_Complex", "_Imaginary"};
+  static const char* keywords[] = {"f",      "F",      "U",      "u",      "L",      "LL",      "l",     "ll",       "auto",   "break",    "case",  "char",     "const",    "continue",  "default",
+                                   "do",     "double", "else",   "enum",   "float",  "for",     "goto",  "if",       "inline", "int",      "long",  "register", "restrict", "return",    "short",
+                                   "signed", "sizeof", "static", "struct", "switch", "typedef", "union", "unsinged", "void",   "volatile", "while", "_Bool",    "_Complex", "_Imaginary"};
   static TokenType   tokens[]   = {
       TOKEN_FLOAT_POSTFIX,
       TOKEN_FLOAT_POSTFIX,
@@ -180,7 +180,6 @@ static TokenType get_keyword(String literal)
       TOKEN_DOUBLE,
       TOKEN_ELSE,
       TOKEN_ENUM,
-      TOKEN_EXTERN,
       TOKEN_FLOAT,
       TOKEN_FOR,
       TOKEN_GOTO,
@@ -250,8 +249,8 @@ static Token* parse_hex(Scanner* scanner, i32 index)
 
   if (current == '.')
   {
-    type = TOKEN_FLOAT_HEX_CONSTANT;
-    current        = advance(scanner);
+    type    = TOKEN_FLOAT_HEX_CONSTANT;
+    current = advance(scanner);
     while (!is_out_of_bounds(scanner) && (isdigit(current) || is_valid_hex(current)))
     {
       current = advance(scanner);
@@ -485,12 +484,6 @@ Token* parse_token(Scanner* scanner)
   case '/':
   {
     String literal = {};
-    if (match_next(scanner, '='))
-    {
-      literal.buffer = "/=";
-      literal.len    = 2;
-      return create_token(scanner->arena, TOKEN_AUGMENTED_SLASH, literal, scanner->line, scanner->index);
-    }
     literal.buffer = "/";
     literal.len    = 1;
     return create_token(scanner->arena, TOKEN_SLASH, literal, scanner->line, scanner->index);
@@ -498,12 +491,6 @@ Token* parse_token(Scanner* scanner)
   case '*':
   {
     String literal = {};
-    if (match_next(scanner, '='))
-    {
-      literal.buffer = "*=";
-      literal.len    = 2;
-      return create_token(scanner->arena, TOKEN_AUGMENTED_STAR, literal, scanner->line, scanner->index);
-    }
     literal.buffer = "*";
     literal.len    = 1;
     return create_token(scanner->arena, TOKEN_STAR, literal, scanner->line, scanner->index);
@@ -511,13 +498,7 @@ Token* parse_token(Scanner* scanner)
   case '&':
   {
     String literal = {};
-    if (match_next(scanner, '='))
-    {
-      literal.buffer = "&=";
-      literal.len    = 2;
-      return create_token(scanner->arena, TOKEN_AUGMENTED_AND, literal, scanner->line, scanner->index);
-    }
-    else if (match_next(scanner, '&'))
+    if (match_next(scanner, '&'))
     {
       literal.buffer = "&&";
       literal.len    = 2;
@@ -531,13 +512,7 @@ Token* parse_token(Scanner* scanner)
   case '|':
   {
     String literal = {};
-    if (match_next(scanner, '='))
-    {
-      literal.buffer = "|=";
-      literal.len    = 2;
-      return create_token(scanner->arena, TOKEN_AUGMENTED_OR, literal, scanner->line, scanner->index);
-    }
-    else if (match_next(scanner, '|'))
+    if (match_next(scanner, '|'))
     {
       literal.buffer = "||";
       literal.len    = 2;
@@ -589,12 +564,6 @@ Token* parse_token(Scanner* scanner)
       literal.len    = 2;
       return create_token(scanner->arena, TOKEN_DECREMENT, literal, scanner->line, scanner->index);
     }
-    else if (match_next(scanner, '='))
-    {
-      literal.buffer = "-=";
-      literal.len    = 2;
-      return create_token(scanner->arena, TOKEN_AUGMENTED_MINUS, literal, scanner->line, scanner->index);
-    }
     literal.buffer = "-";
     literal.len    = 1;
     return create_token(scanner->arena, TOKEN_MINUS, literal, scanner->line, scanner->index);
@@ -607,12 +576,6 @@ Token* parse_token(Scanner* scanner)
       literal.buffer = "++";
       literal.len    = 2;
       return create_token(scanner->arena, TOKEN_INCREMENT, literal, scanner->line, scanner->index);
-    }
-    else if (match_next(scanner, '='))
-    {
-      literal.buffer = "-=";
-      literal.len    = 2;
-      return create_token(scanner->arena, TOKEN_AUGMENTED_PLUS, literal, scanner->line, scanner->index);
     }
     literal.buffer = "+";
     literal.len    = 1;
@@ -653,12 +616,6 @@ Token* parse_token(Scanner* scanner)
   case '^':
   {
     String literal = {};
-    if (match_next(scanner, '='))
-    {
-      literal.buffer = "^=";
-      literal.len    = 2;
-      return create_token(scanner->arena, TOKEN_AUGMENTED_XOR, literal, scanner->line, scanner->index);
-    }
     literal.buffer = "^";
     literal.len    = 1;
     return create_token(scanner->arena, TOKEN_XOR, literal, scanner->line, scanner->index);
