@@ -157,10 +157,12 @@ static Token* parse_string(Scanner* scanner)
 
 static TokenType get_keyword(String literal)
 {
-  static const char* keywords[] = {"U",      "u",      "L",      "LL",     "l",       "ll",    "auto",     "break",  "case",     "char",  "const",    "continue", "default",   "do",    "double",
-                                   "else",   "enum",   "extern", "float",  "for",     "goto",  "if",       "inline", "int",      "long",  "register", "restrict", "return",    "short", "signed",
-                                   "sizeof", "static", "struct", "switch", "typedef", "union", "unsinged", "void",   "volatile", "while", "_Bool",    "_Complex", "_Imaginary"};
+  static const char* keywords[] = {"f",     "F",      "U",      "u",      "L",      "LL",     "l",       "ll",    "auto",     "break",  "case",     "char",  "const",    "continue", "default",
+                                   "do",    "double", "else",   "enum",   "extern", "float",  "for",     "goto",  "if",       "inline", "int",      "long",  "register", "restrict", "return",
+                                   "short", "signed", "sizeof", "static", "struct", "switch", "typedef", "union", "unsinged", "void",   "volatile", "while", "_Bool",    "_Complex", "_Imaginary"};
   static TokenType   tokens[]   = {
+      TOKEN_FLOAT_POSTFIX,
+      TOKEN_FLOAT_POSTFIX,
       TOKEN_UNSIGNED_POSTFIX,
       TOKEN_UNSIGNED_POSTFIX,
       TOKEN_LONG_POSTFIX,
@@ -248,9 +250,24 @@ static Token* parse_hex(Scanner* scanner, i32 index)
 
   if (current == '.')
   {
-    TokenType type = TOKEN_FLOAT_HEX_CONSTANT;
+    type = TOKEN_FLOAT_HEX_CONSTANT;
     current        = advance(scanner);
     while (!is_out_of_bounds(scanner) && (isdigit(current) || is_valid_hex(current)))
+    {
+      current = advance(scanner);
+    }
+
+    // binary exponent part
+    if (current != 'p')
+    {
+      error("Expected p after float hex");
+    }
+    // sign
+    match_next(scanner, '-');
+    match_next(scanner, '+');
+    // digit_sequence
+    current = current_char(scanner);
+    while (!is_out_of_bounds(scanner) && isdigit(current))
     {
       current = advance(scanner);
     }

@@ -7,4 +7,4 @@
 15ll // int constant
 0x15l // int hex constant
 056u // octal
-0x01.5p10
+0x01.5p10f
