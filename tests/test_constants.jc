@@ -3,3 +3,8 @@
 056 // octal
 '5' // character
 5.25 // float
+
+15ll // int constant
+0x15l // int hex constant
+056u // octal
+0x01.5p10

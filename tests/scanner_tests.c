@@ -23,39 +23,40 @@ static void test_constants()
   init_scanner(&scanner, &arena, &file, "scanner_test.jc");
 
   TokenType tokens[] = {
-      TOKEN_INT_CONSTANT, TOKEN_INT_HEX_CONSTANT, TOKEN_OCTAL_CONSTANT, TOKEN_CHARACTER_CONSTANT, TOKEN_FLOAT_CONSTANT,
-
+      TOKEN_INT_CONSTANT,       //
+      TOKEN_INT_HEX_CONSTANT,   //
+      TOKEN_OCTAL_CONSTANT,     //
+      TOKEN_CHARACTER_CONSTANT, //
+      TOKEN_FLOAT_CONSTANT,     //
+      TOKEN_INT_CONSTANT,       //
+      TOKEN_LONG_LONG_POSTFIX,  //
+      TOKEN_INT_HEX_CONSTANT,   //
+      TOKEN_LONG_POSTFIX,       //
+      TOKEN_OCTAL_CONSTANT,     //
+      TOKEN_UNSIGNED_POSTFIX,   //
+      TOKEN_FLOAT_HEX_CONSTANT, //
+      TOKEN_FLOAT_POSTFIX       //
   };
-  bool      result = true;
-  TokenType expected;
-  TokenType got;
+
   for (int i = 0; i < ArrayCount(tokens); i++)
   {
     Token* out = parse_token(&scanner);
     if (tokens[i] != out->type)
     {
-      result   = false;
-      expected = tokens[i];
-      got      = out->type;
-      break;
+      free((void*)arena.memory);
+      print_test_fail(name, get_token_type_string(tokens[i]), get_token_type_string(out->type));
+      return;
     }
   }
   Token* out = parse_token(&scanner);
+  free((void*)arena.memory);
   if (out->type != TOKEN_EOF)
   {
     print_test_fail(name, get_token_type_string(TOKEN_EOF), get_token_type_string(out->type));
+    return;
   }
 
-  if (result)
-  {
-    print_test_complete(name);
-  }
-  else
-  {
-    print_test_fail(name, get_token_type_string(expected), get_token_type_string(got));
-  }
-
-  free((void*)arena.memory);
+  print_test_complete(name);
 }
 
 void run_scanner_tests()

@@ -3,7 +3,8 @@
 #define TOKEN_H
 #include "common.h"
 
-enum TokenType {
+enum TokenType
+{
   // CONSTANTS
   TOKEN_CHARACTER_CONSTANT,
   TOKEN_FLOAT_CONSTANT,
@@ -13,6 +14,10 @@ enum TokenType {
   TOKEN_INT_CONSTANT,
   TOKEN_INT_HEX_CONSTANT,
   TOKEN_STRING_CONSTANT,
+  TOKEN_UNSIGNED_POSTFIX,
+  TOKEN_LONG_POSTFIX,
+  TOKEN_LONG_LONG_POSTFIX,
+  TOKEN_FLOAT_POSTFIX,
 
   // KEYWORDS
   TOKEN_AUTO,
@@ -52,7 +57,6 @@ enum TokenType {
   TOKEN_BOOL,
   TOKEN_COMPLEX,
   TOKEN_IMAGINARY,
-
 
   TOKEN_LEFT_PAREN,
   TOKEN_RIGHT_PAREN,
@@ -99,17 +103,17 @@ enum TokenType {
 };
 typedef enum TokenType TokenType;
 
-struct Token {
+struct Token
+{
   TokenType type;
-  String literal;
-  i32 index;
-  i32 line;
+  String    literal;
+  i32       index;
+  i32       line;
 };
 typedef struct Token Token;
 
-Token *create_token(Arena *arena, TokenType type, String literal, i32 line,
-                    i32 index);
-void debug_token(Token *token);
-const char *get_token_type_string(TokenType type);
+Token*               create_token(Arena* arena, TokenType type, String literal, i32 line, i32 index);
+void                 debug_token(Token* token);
+const char*          get_token_type_string(TokenType type);
 
 #endif
