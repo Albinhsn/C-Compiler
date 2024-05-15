@@ -12,6 +12,8 @@
 static void      parse_constant(Parser* parser, bool canAssign);
 static void      parse_binary(Parser* parser, bool canAssign);
 static void      parse_expression(Parser* parser, Precedence precedence);
+static void      parse_stmt(Parser* parser);
+static void      parse_block(Parser* parser);
 
 static ParseRule rules[] = {
     [TOKEN_CHARACTER_CONSTANT] = {parse_constant,            0, PREC_ASSIGNMENT},
@@ -282,9 +284,7 @@ static void variable_declaration(Parser* parser)
   variable->type_qualifier    = 0;
   variable->storage_specifier = 0;
   bool got_type               = false;
-  // storage specifier
-  // type specifier
-  bool got_identifier = false;
+  bool got_identifier         = false;
   while (!got_identifier)
   {
     switch (CURRENT_TYPE(parser))
@@ -468,6 +468,62 @@ static void parse_return(Parser* parser)
   consume(parser, TOKEN_SEMICOLON, "Expected ';' after return expression");
 }
 
+static bool is_declaration(Parser* parser)
+{
+  return true;
+}
+
+static void parse_do(Parser* parser)
+{
+
+  advance(parser);
+  consume(parser, TOKEN_LEFT_BRACE, "Expected '(' after for");
+
+  // add new node
+  parse_expression(parser, PREC_ASSIGNMENT);
+  consume(parser, TOKEN_RIGHT_PAREN, "Expected ')' after while condition");
+  // add node?
+  parse_stmt(parser);
+}
+static void parse_while(Parser* parser)
+{
+
+  advance(parser);
+  consume(parser, TOKEN_LEFT_PAREN, "Expected '(' after for");
+
+  // add new node
+  parse_expression(parser, PREC_ASSIGNMENT);
+  consume(parser, TOKEN_RIGHT_PAREN, "Expected ')' after while condition");
+
+  // add node?
+  parse_stmt(parser);
+}
+static void parse_for(Parser* parser)
+{
+  advance(parser);
+  consume(parser, TOKEN_LEFT_PAREN, "Expected '(' after for");
+
+  // need to fix node somewhere here
+  if (is_declaration(parser))
+  {
+    variable_declaration(parser);
+  }
+  else
+  {
+    consume(parser, TOKEN_SEMICOLON, "Expected ';' after first clause");
+  }
+
+  // add new node
+  parse_expression(parser, PREC_ASSIGNMENT);
+  consume(parser, TOKEN_SEMICOLON, "Expected ';' after second expression");
+
+  parse_expression(parser, PREC_ASSIGNMENT);
+  consume(parser, TOKEN_RIGHT_PAREN, "Expected ')' after third expression");
+
+  // add node?
+  parse_stmt(parser);
+}
+
 static void parse_stmt(Parser* parser)
 {
   switch (CURRENT_TYPE(parser))
@@ -487,6 +543,16 @@ static void parse_stmt(Parser* parser)
   case TOKEN_UNION:
   {
     break;
+  }
+  case TOKEN_LEFT_BRACE:
+  {
+    parse_block(parser);
+    return;
+  }
+  case TOKEN_FOR:
+  {
+    parse_for(parser);
+    return;
   }
   case TOKEN_RETURN:
   {
