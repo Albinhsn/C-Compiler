@@ -14,6 +14,7 @@ typedef enum
   NODE_IF,
   NODE_RETURN,
   NODE_VARIABLE,
+  NODE_DECLARATION,
   NODE_STRUCT,
   NODE_DEFINE,
   NODE_INCLUDE,
@@ -50,22 +51,18 @@ typedef enum
 
 typedef struct
 {
-  Token*        token; // literal
-  unsigned char size; // bitfield
-  unsigned char type;       // hex, octal, binary etc
+  unsigned char size;       // bitfield
   bool          signedness; // signed/unsigned
 } DataTypeInteger;
 
 typedef struct
 {
-  Token*        token; // literal
   unsigned char size;
-  bool          type; // hex/decimal
 } DataTypeFloat;
 
 typedef struct
 {
-  Token*        token; // name
+  Token* token; // name
 } DataTypeStruct;
 
 typedef struct
@@ -101,19 +98,43 @@ typedef struct
   int       argument_count;
 } FunctionNode;
 
+typedef struct
+{
+  TokenType op;
+} BinaryNode;
+
+typedef struct
+{
+  DataType type;
+  char     type_qualifier;
+  char     storage_specifier;
+} DeclarationNode;
+
+typedef struct
+{
+  Token* name;
+} VariableNode;
+
 typedef struct AstNode AstNode;
 struct AstNode
 {
   // next horizontally
   AstNode* next;
+  AstNode* prev;
   // next down one
   AstNode*    down;
+  AstNode*    up;
   AstNodeType type;
   union
   {
-    ConstantNode constant;
-    FunctionNode function;
+    ConstantNode    constant;
+    FunctionNode    function;
+    BinaryNode      binary;
+    DeclarationNode declaration;
+    VariableNode    variable;
   };
 };
+
+void debug_node(AstNode* node);
 
 #endif

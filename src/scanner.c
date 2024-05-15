@@ -157,18 +157,10 @@ static Token* parse_string(Scanner* scanner)
 
 static TokenType get_keyword(String literal)
 {
-  static const char* keywords[] = {"f",      "F",      "U",      "u",      "L",      "LL",      "l",     "ll",       "auto",   "break",    "case",  "char",     "const",    "continue",  "default",
-                                   "do",     "double", "else",   "enum",   "float",  "for",     "goto",  "if",       "inline", "int",      "long",  "register", "restrict", "return",    "short",
-                                   "signed", "sizeof", "static", "struct", "switch", "typedef", "union", "unsinged", "void",   "volatile", "while", "_Bool",    "_Complex", "_Imaginary"};
+  static const char* keywords[] = {"auto",     "break",  "case",     "char",  "const",    "continue", "default",
+                                   "do",    "double", "else",   "enum",   "extern", "float",  "for",     "goto",  "if",       "inline", "int",      "long",  "register", "restrict", "return",
+                                   "short", "signed", "sizeof", "static", "struct", "switch", "typedef", "union", "unsinged", "void",   "volatile", "while", "_Bool",    "_Complex", "_Imaginary"};
   static TokenType   tokens[]   = {
-      TOKEN_FLOAT_POSTFIX,
-      TOKEN_FLOAT_POSTFIX,
-      TOKEN_UNSIGNED_POSTFIX,
-      TOKEN_UNSIGNED_POSTFIX,
-      TOKEN_LONG_POSTFIX,
-      TOKEN_LONG_LONG_POSTFIX,
-      TOKEN_LONG_POSTFIX,
-      TOKEN_LONG_LONG_POSTFIX,
       TOKEN_AUTO,
       TOKEN_BREAK,
       TOKEN_CASE,
@@ -180,6 +172,7 @@ static TokenType get_keyword(String literal)
       TOKEN_DOUBLE,
       TOKEN_ELSE,
       TOKEN_ENUM,
+      TOKEN_EXTERN,
       TOKEN_FLOAT,
       TOKEN_FOR,
       TOKEN_GOTO,
@@ -337,7 +330,6 @@ static Token* parse_number(Scanner* scanner)
   TokenType type    = TOKEN_INT_CONSTANT;
 
   char      current = advance(scanner);
-  Token*    token   = 0;
   if (scanner->input->buffer[index] == '0')
   {
     if (current == 'x' || current == 'X')

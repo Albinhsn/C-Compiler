@@ -1,10 +1,22 @@
 #ifndef PRECEDENCE_H
 #define PRECEDENCE_H
 
+typedef enum
+{
 
-typedef enum {
   PREC_NONE,
-  PREC_ASSIGNMENT
+  PREC_LITERAL,
+  PREC_ASSIGNMENT,
+  PREC_OR,
+  PREC_AND,
+  PREC_EQUALITY,
+  PREC_COMPARISON,
+  PREC_BITWISE,
+  PREC_TERM,
+  PREC_FACTOR,
+  PREC_UNARY,
+  PREC_CALL,
+  PREC_PRIMARY
 } Precedence;
 
 #endif

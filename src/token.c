@@ -15,10 +15,8 @@ Token* create_token(Arena* arena, TokenType type, String literal, int line, int 
 const char* get_token_type_string(TokenType type)
 {
 
-  static const char* token_names[] = {
-      "TOKEN_CHARACTER_CONSTANT", "TOKEN_FLOAT_CONSTANT",  "TOKEN_FLOAT_HEX_CONSTANT", "TOKEN_BINARY_CONSTANT", "TOKEN_OCTAL_CONSTANT",    "TOKEN_INT_CONSTANT",
-      "TOKEN_INT_HEX_CONSTANT",   "TOKEN_STRING_CONSTANT", "TOKEN_UNSIGNED_POSTFIX",   "TOKEN_LONG_POSTFIX",    "TOKEN_LONG_LONG_POSTFIX", "TOKEN_FLOAT_POSTFIX",
-  };
+  static const char* token_names[] = {"TOKEN_CHARACTER_CONSTANT", "TOKEN_FLOAT_CONSTANT", "TOKEN_FLOAT_HEX_CONSTANT", "TOKEN_BINARY_CONSTANT",
+                                      "TOKEN_OCTAL_CONSTANT",     "TOKEN_INT_CONSTANT",   "TOKEN_INT_HEX_CONSTANT",   "TOKEN_STRING_CONSTANT"};
 
   if (type >= ArrayCount(token_names))
   {

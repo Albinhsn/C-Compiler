@@ -1,6 +1,7 @@
 
 #include "common.h"
 #include "files.h"
+#include "parser.h"
 #include "scanner.h"
 #include <stdio.h>
 #include <stdlib.h>
@@ -20,8 +21,18 @@ int main(int argc, char** argv)
   arena.maxSize   = size;
   Scanner scanner = {};
 
-  sta_read_file(&arena, &file, argv[1]);
+  bool    read    = sta_read_file(&arena, &file, argv[1]);
+  if (!read)
+  {
+    printf("Couldn't read file %s\n", argv[1]);
+    return 1;
+  }
   init_scanner(&scanner, &arena, &file, argv[1]);
+
+  Parser parser = {};
+  init_parser(&parser, &scanner);
+  AstNode* head = parse(&parser);
+  debug_node(head);
 
   return 0;
 }
