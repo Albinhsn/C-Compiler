@@ -4,6 +4,7 @@
 #include "scanner.h"
 #include "token.h"
 #include <stdlib.h>
+#include <string.h>
 
 #define ALLOC(parser, type)  (sta_arena_push_struct(parser->scanner->arena, type))
 #define ALLOC_NODE(parser)   (ALLOC(parser, AstNode))
@@ -360,66 +361,46 @@ static void variable_declaration(Parser* parser)
     }
   }
 
+  node->declaration.variables = ALLOC_NODE(parser);
+  AstNode* curr               = node->declaration.variables;
   do
   {
 
-    if (node->down == 0)
-    {
-      node->down     = ALLOC_NODE(parser);
-      node->down->up = node;
-      parser->node   = node->down;
-    }
-    else
-    {
-      AstNode* new_variable = ALLOC_NODE(parser);
-      node->down->prev      = new_variable;
-      new_variable->next    = node->down;
-
-      new_variable->up      = node;
-      node->down->up        = 0;
-
-      node->down            = new_variable;
-    }
-
+    parser->node = curr;
     consume(parser, TOKEN_IDENTIFIER, "Expected variable name");
-    AstNode* variable       = node->down;
-    variable->type          = NODE_VARIABLE;
-    variable->variable.name = parser->previous;
-    parser->node            = variable;
+    curr->type          = NODE_VARIABLE;
+    curr->variable.name = parser->previous;
 
     if (match(parser, TOKEN_EQUAL))
     {
-      parser->node->down     = ALLOC_NODE(parser);
-      parser->node->down->up = parser->node;
-      parser->node           = parser->node->down;
+      curr->variable.value = ALLOC_NODE(parser);
+      parser->node         = curr;
       parse_expression(parser, PREC_ASSIGNMENT);
     }
+    if (match(parser, TOKEN_COMMA))
+    {
+      curr = ALLOC_NODE(parser);
+    }
+    else
+    {
+      break;
+    }
 
-  } while (match(parser, TOKEN_COMMA));
+  } while (true);
 
   consume(parser, TOKEN_SEMICOLON, "Expected ';' after variable declaration");
 }
 
 static void parse_binary(Parser* parser, bool canAssign)
 {
-  AstNode* binary_node = ALLOC_NODE(parser);
-  if (parser->node->up != 0)
-  {
-    parser->node->up->down = binary_node;
-    binary_node->up        = parser->node->up;
-  }
-  else
-  {
-    parser->node->prev->next = binary_node;
-    binary_node->prev        = parser->node;
-  }
-
-  binary_node->type             = NODE_BINARY;
-  binary_node->binary.op        = parser->previous->type;
-  binary_node->down             = parser->node;
-  binary_node->down->next       = ALLOC_NODE(parser);
-  binary_node->down->next->prev = binary_node->down;
-  parser->node                  = binary_node->down->next;
+  AstNode* left_node = ALLOC_NODE(parser);
+  memcpy(left_node, parser->node, sizeof(AstNode));
+  memset(parser->node, 0, sizeof(AstNode));
+  parser->node->type         = NODE_BINARY;
+  parser->node->binary.left  = left_node;
+  parser->node->binary.op    = parser->previous->type;
+  parser->node->binary.right = ALLOC_NODE(parser);
+  parser->node               = parser->node->binary.right;
 
   parse_expression(parser, rules[parser->previous->type].precedence);
 }
@@ -459,10 +440,9 @@ static void parse_expression(Parser* parser, Precedence precedence)
 
 static void parse_return(Parser* parser)
 {
-  parser->node->type     = NODE_RETURN;
-  parser->node->down     = ALLOC_NODE(parser);
-  parser->node->down->up = parser->node;
-  parser->node           = parser->node->down;
+  parser->node->type          = NODE_RETURN;
+  parser->node->return_.value = ALLOC_NODE(parser);
+  parser->node                = parser->node->return_.value;
   advance(parser);
   parse_expression(parser, PREC_ASSIGNMENT);
   consume(parser, TOKEN_SEMICOLON, "Expected ';' after return expression");
@@ -488,24 +468,35 @@ static void parse_do(Parser* parser)
 static void parse_while(Parser* parser)
 {
 
+  AstNode* while_node = parser->node;
+  while_node->type    = NODE_WHILE;
   advance(parser);
   consume(parser, TOKEN_LEFT_PAREN, "Expected '(' after for");
 
   // add new node
+
+  while_node->while_.condition = ALLOC_NODE(parser);
+  parser->node                 = while_node->while_.condition;
   parse_expression(parser, PREC_ASSIGNMENT);
   consume(parser, TOKEN_RIGHT_PAREN, "Expected ')' after while condition");
 
   // add node?
+  while_node->while_.body = ALLOC_NODE(parser);
+  parser->node            = while_node->while_.body;
   parse_stmt(parser);
 }
 static void parse_for(Parser* parser)
 {
+  AstNode* for_node = parser->node;
+  for_node->type    = NODE_FOR;
+
   advance(parser);
   consume(parser, TOKEN_LEFT_PAREN, "Expected '(' after for");
 
-  // need to fix node somewhere here
+  for_node->for_.init = 0;
   if (is_declaration(parser))
   {
+    for_node->for_.init = ALLOC_NODE(parser);
     variable_declaration(parser);
   }
   else
@@ -513,14 +504,24 @@ static void parse_for(Parser* parser)
     consume(parser, TOKEN_SEMICOLON, "Expected ';' after first clause");
   }
 
-  // add new node
-  parse_expression(parser, PREC_ASSIGNMENT);
-  consume(parser, TOKEN_SEMICOLON, "Expected ';' after second expression");
+  for_node->for_.condition = 0;
+  if (!match(parser, TOKEN_SEMICOLON))
+  {
+    for_node->for_.condition = ALLOC_NODE(parser);
+    parse_expression(parser, PREC_ASSIGNMENT);
+    consume(parser, TOKEN_SEMICOLON, "Expected ';' after second expression");
+  }
 
-  parse_expression(parser, PREC_ASSIGNMENT);
-  consume(parser, TOKEN_RIGHT_PAREN, "Expected ')' after third expression");
+  for_node->for_.update = 0;
+  if (!match(parser, TOKEN_RIGHT_PAREN))
+  {
+    for_node->for_.update = ALLOC_NODE(parser);
+    parse_expression(parser, PREC_ASSIGNMENT);
+    consume(parser, TOKEN_RIGHT_PAREN, "Expected ')' after third expression");
+  }
 
-  // add node?
+  for_node->for_.body = ALLOC_NODE(parser);
+  parser->node        = for_node->for_.body;
   parse_stmt(parser);
 }
 
@@ -546,6 +547,7 @@ static void parse_stmt(Parser* parser)
   }
   case TOKEN_LEFT_BRACE:
   {
+    advance(parser);
     parse_block(parser);
     return;
   }
@@ -589,6 +591,21 @@ static void parse_stmt(Parser* parser)
   }
   case TOKEN_IDENTIFIER:
   {
+    if (is_struct(parser))
+    {
+    }
+    else
+    {
+      AstNode* node = ALLOC_NODE(parser);
+      parse_expression(parser, PREC_ASSIGNMENT + 1);
+      if (match(parser, TOKEN_EQUAL))
+      {
+      }
+      else
+      {
+        consume(parser, TOKEN_SEMICOLON, "Expected ';' after expression stmt?");
+      }
+    }
     // should be type?
   }
 
@@ -604,19 +621,23 @@ static void parse_stmt(Parser* parser)
 
 static void parse_block(Parser* parser)
 {
-  AstNode* curr      = ALLOC_NODE(parser);
-  parser->node->down = curr;
-  curr->up           = parser->node;
-  parser->node       = curr;
-  while (true)
+  parser->node->type = NODE_BLOCK;
+  AstNode* curr      = 0;
+  while (!match(parser, TOKEN_RIGHT_BRACE))
   {
-    parse_stmt(parser);
-    if (match(parser, TOKEN_RIGHT_BRACE))
+    if (curr == 0)
     {
-      break;
+      parser->node->block.nodes = ALLOC_NODE(parser);
+      curr                      = parser->node->block.nodes;
+      curr->next                = 0;
     }
-    curr->next = ALLOC_NODE(parser);
-    curr       = curr->next;
+    else
+    {
+      curr->next = ALLOC_NODE(parser);
+      curr       = curr->next;
+    }
+    parser->node = curr;
+    parse_stmt(parser);
   }
 }
 
@@ -653,6 +674,8 @@ static void parse_function(Parser* parser)
   else
   {
     consume(parser, TOKEN_LEFT_BRACE, "Expected '{' or ';' after function params");
+    node->block  = ALLOC_NODE(parser);
+    parser->node = node->block;
     parse_block(parser);
   }
 }

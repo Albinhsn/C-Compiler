@@ -98,6 +98,21 @@ void debug_declaration(DeclarationNode declaration)
   debug_data_type(declaration.type);
 }
 
+void debug_node(AstNode* node);
+
+void debug_block(AstNode* block)
+{
+  printf("{\n");
+  AstNode* curr = block;
+  while (curr)
+  {
+    printf("\t");
+    debug_node(curr);
+    curr = curr->next;
+  }
+  printf("}\n");
+}
+
 void debug_node(AstNode* node)
 {
   if (node == 0)
@@ -107,6 +122,11 @@ void debug_node(AstNode* node)
   }
   switch (node->type)
   {
+  case NODE_BLOCK:
+  {
+    debug_block(node->block.nodes);
+    break;
+  }
   case NODE_FUNCTION:
   {
     FunctionNode* func = &node->function;
@@ -120,14 +140,8 @@ void debug_node(AstNode* node)
         printf(", ");
       }
     }
-    printf("){\n");
-    AstNode* block = node->down;
-    while (block != 0)
-    {
-      debug_node(block);
-      block = block->next;
-    }
-    printf("}\n");
+    printf(")");
+    debug_node(node->function.block);
     break;
   }
   case NODE_ARRAY:
@@ -151,7 +165,7 @@ void debug_node(AstNode* node)
   case NODE_RETURN:
   {
     printf("return ");
-    debug_node(node->down);
+    debug_node(node->return_.value);
     printf(";\n");
     break;
   }
@@ -159,44 +173,27 @@ void debug_node(AstNode* node)
   {
     String literal = node->variable.name->literal;
     printf("%.*s", (i32)literal.len, literal.buffer);
-    if (node->down!= 0)
+    if (node->variable.value != NULL)
     {
       printf(" = ");
-      debug_node(node->down);
+      debug_node(node->variable.value);
     }
     break;
   }
   case NODE_DECLARATION:
   {
     debug_declaration(node->declaration);
-    if (node->down)
+    if (node->declaration.variables)
     {
-      AstNode* down = node->down;
-      while (true)
-      {
-        if (!down->next)
-        {
-          break;
-        }
-        down = down->next;
-      }
-
-      while (true)
+      AstNode* down = node->declaration.variables;
+      do
       {
         debug_node(down);
-        down = down->prev;
-        if (down)
-        {
-          printf(", ");
-        }
-        else
-        {
-          break;
-        }
-      }
+        down = down->next;
+      } while (down);
+      printf(";\n");
+      break;
     }
-    printf(";\n");
-    break;
   }
   case NODE_STRUCT:
   {
@@ -210,7 +207,7 @@ void debug_node(AstNode* node)
   case NODE_BINARY:
   {
     printf("(");
-    debug_node(node->down);
+    debug_node(node->binary.left);
     switch (node->binary.op)
     {
     case TOKEN_PLUS:
@@ -239,7 +236,7 @@ void debug_node(AstNode* node)
       exit(1);
     }
     }
-    debug_node(node->down->next);
+    debug_node(node->binary.right);
     printf(")");
     break;
   }

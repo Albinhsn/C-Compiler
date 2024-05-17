@@ -14,6 +14,7 @@ typedef enum
   NODE_IF,
   NODE_RETURN,
   NODE_VARIABLE,
+  NODE_BLOCK,
   NODE_DECLARATION,
   NODE_STRUCT,
   NODE_DEFINE,
@@ -90,41 +91,67 @@ typedef struct
   DataType type;
 } Argument;
 
+typedef struct AstNode AstNode;
+
+typedef struct
+{
+  AstNode* nodes;
+} BlockNode;
+
 typedef struct
 {
   DataType  return_type;
   String*   name;
   Argument* arguments;
   int       argument_count;
+  AstNode*  block;
 } FunctionNode;
 
 typedef struct
 {
+  AstNode* init;
+  AstNode* condition;
+  AstNode* update;
+  AstNode* body;
+} ForNode;
+
+typedef struct
+{
+  AstNode* condition;
+  AstNode* body;
+} WhileNode;
+
+typedef struct
+{
   TokenType op;
+  AstNode*  left;
+  AstNode*  right;
 } BinaryNode;
+
+typedef struct
+{
+  Token*   name;
+  AstNode* value;
+} VariableNode;
 
 typedef struct
 {
   DataType type;
   char     type_qualifier;
   char     storage_specifier;
+  AstNode* variables;
+
 } DeclarationNode;
 
 typedef struct
 {
-  Token* name;
-} VariableNode;
+  AstNode* value;
+} ReturnNode;
 
-typedef struct AstNode AstNode;
 struct AstNode
 {
-  // next horizontally
-  AstNode* next;
-  AstNode* prev;
-  // next down one
-  AstNode*    down;
-  AstNode*    up;
   AstNodeType type;
+  AstNode*    next;
   union
   {
     ConstantNode    constant;
@@ -132,6 +159,10 @@ struct AstNode
     BinaryNode      binary;
     DeclarationNode declaration;
     VariableNode    variable;
+    ReturnNode      return_;
+    BlockNode       block;
+    WhileNode       while_;
+    ForNode         for_;
   };
 };
 
