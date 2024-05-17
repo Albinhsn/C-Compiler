@@ -32,7 +32,7 @@ int main(int argc, char** argv)
   Parser parser = {};
   init_parser(&parser, &scanner);
   AstNode* head = parse(&parser);
-  debug_node(head);
+  debug_node(head, 0);
 
   return 0;
 }

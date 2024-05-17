@@ -19,7 +19,7 @@ typedef enum
 {
   TYPE_QUAL_CONST    = 1,
   TYPE_QUAL_RESTRICT = 2,
-  TYPE_QUAL_VOLATILE = 4
+  TYPE_QUAL_VOLATILE = 4,
 } TypeQualifier;
 
 typedef struct

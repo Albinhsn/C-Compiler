@@ -8,7 +8,7 @@ typedef enum
   NODE_FUNCTION,
   NODE_ARRAY,
   NODE_ASSIGN,
-  NODE_EXPRESSION,
+  NODE_DO,
   NODE_FOR,
   NODE_WHILE,
   NODE_IF,
@@ -17,6 +17,8 @@ typedef enum
   NODE_BLOCK,
   NODE_DECLARATION,
   NODE_STRUCT,
+  NODE_UNION,
+  NODE_ENUM,
   NODE_DEFINE,
   NODE_INCLUDE,
   NODE_BINARY,
@@ -33,7 +35,8 @@ typedef enum
   NODE_BREAK,
   NODE_CONTINUE,
   NODE_IDENTIFIER,
-  NODE_GOTO
+  NODE_GOTO,
+  NODE_EMPTY
 
 } AstNodeType;
 
@@ -121,6 +124,7 @@ typedef struct
   AstNode* body;
 } WhileNode;
 
+typedef WhileNode DoNode;
 typedef struct
 {
   TokenType op;
@@ -128,9 +132,11 @@ typedef struct
   AstNode*  right;
 } BinaryNode;
 
+typedef BinaryNode ComparisonNode;
+
 typedef struct
 {
-  Token*   name;
+  String*   name;
   AstNode* value;
 } VariableNode;
 
@@ -140,13 +146,54 @@ typedef struct
   char     type_qualifier;
   char     storage_specifier;
   AstNode* variables;
-
 } DeclarationNode;
+
+typedef struct
+{
+  AstNode* target;
+  AstNode* value;
+} AssignNode;
 
 typedef struct
 {
   AstNode* value;
 } ReturnNode;
+
+typedef struct EnumValue EnumValue;
+
+struct EnumValue
+{
+  String*    name;
+  Token*     constant;
+  EnumValue* next;
+};
+
+typedef struct
+{
+  EnumValue* values;
+  String*    name;
+} EnumNode;
+
+typedef struct
+{
+  AstNode* node;
+  Token*   postfix;
+} PostfixNode;
+
+typedef struct StructField StructField;
+struct StructField
+{
+  DataType     type;
+  String*      name;
+  StructField* next;
+};
+
+typedef struct
+{
+  StructField* fields;
+  String*      name;
+} StructNode;
+typedef StructNode UnionNode;
 
 struct AstNode
 {
@@ -157,15 +204,22 @@ struct AstNode
     ConstantNode    constant;
     FunctionNode    function;
     BinaryNode      binary;
+    ComparisonNode  comparison;
     DeclarationNode declaration;
     VariableNode    variable;
     ReturnNode      return_;
     BlockNode       block;
     WhileNode       while_;
     ForNode         for_;
+    AssignNode      assign;
+    EnumNode        enum_;
+    DoNode          do_;
+    PostfixNode     postfix;
+    StructNode      struct_;
+    UnionNode       union_;
   };
 };
 
-void debug_node(AstNode* node);
+void debug_node(AstNode* node, int tabs);
 
 #endif

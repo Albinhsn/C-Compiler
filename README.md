@@ -7,4 +7,7 @@ Writing a C compiler as an excuse to read the spec
 - [ ] array declarations
 - [ ] labels, goto
 - [ ] continue, break
+- [ ] typedef
+- [ ] cleanup declaration
+- [ ] unity build
 

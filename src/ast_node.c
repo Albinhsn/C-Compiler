@@ -98,23 +98,28 @@ void debug_declaration(DeclarationNode declaration)
   debug_data_type(declaration.type);
 }
 
-void debug_node(AstNode* node);
+static inline void print_tabs(int tabs)
+{
+  for (int i = 0; i < tabs; i++)
+  {
+    printf("\t");
+  }
+}
 
-void debug_block(AstNode* block)
+void debug_node(AstNode* node, int tabs);
+
+void debug_block(AstNode* block, int tabs)
 {
   printf("{\n");
   AstNode* curr = block;
-  while (curr)
-  {
-    printf("\t");
-    debug_node(curr);
-    curr = curr->next;
-  }
+  debug_node(curr, tabs + 1);
+  print_tabs(tabs);
   printf("}\n");
 }
 
-void debug_node(AstNode* node)
+void debug_node(AstNode* node, int tabs)
 {
+  print_tabs(tabs);
   if (node == 0)
   {
     printf("DEBUG 0 NODE\n");
@@ -122,9 +127,50 @@ void debug_node(AstNode* node)
   }
   switch (node->type)
   {
+  case NODE_DO:
+  {
+    printf("do\n");
+    debug_node(node->do_.body, tabs);
+    print_tabs(tabs);
+    printf("while(");
+    debug_node(node->do_.condition, 0);
+    printf(");\n");
+    break;
+  }
+  case NODE_ENUM:
+  {
+    EnumNode* enum_node = &node->enum_;
+    printf("enum {\n");
+    EnumValue* value = enum_node->values;
+    while (value != NULL)
+    {
+      print_tabs(tabs + 1);
+      printf("%.*s", (i32)value->name->len, value->name->buffer);
+      if (value->constant != 0)
+      {
+
+        printf(" = ");
+        debug_token(value->constant);
+      }
+      if (value->next)
+      {
+        printf(",");
+      }
+      printf("\n");
+
+      value = value->next;
+    }
+    printf("};\n");
+    break;
+  }
+  case NODE_EMPTY:
+  {
+    printf(";\n");
+    break;
+  }
   case NODE_BLOCK:
   {
-    debug_block(node->block.nodes);
+    debug_block(node->block.nodes, tabs);
     break;
   }
   case NODE_FUNCTION:
@@ -141,7 +187,7 @@ void debug_node(AstNode* node)
       }
     }
     printf(")");
-    debug_node(node->function.block);
+    debug_node(node->function.block, tabs);
     break;
   }
   case NODE_ARRAY:
@@ -149,15 +195,47 @@ void debug_node(AstNode* node)
   }
   case NODE_ASSIGN:
   {
-  }
-  case NODE_EXPRESSION:
-  {
+    AssignNode* assign = &node->assign;
+    debug_node(assign->target, 0);
+    printf(" = ");
+    debug_node(assign->value, 0);
+    if (assign->value->type != NODE_ASSIGN)
+    {
+      printf(";\n");
+    }
+    break;
   }
   case NODE_FOR:
   {
+    ForNode* for_node = &node->for_;
+    printf("for(");
+    if (for_node->init)
+    {
+      debug_node(for_node->init, 0);
+    }
+    printf(";");
+    if (for_node->condition)
+    {
+      printf(" ");
+      debug_node(for_node->condition, 0);
+    }
+    printf(";");
+    if (for_node->update)
+    {
+      printf(" ");
+      debug_node(for_node->update, 0);
+    }
+    printf(")\n");
+    debug_node(for_node->body, tabs);
+    break;
   }
   case NODE_WHILE:
   {
+    printf("while(");
+    debug_node(node->do_.condition, 0);
+    printf(")");
+    debug_node(node->do_.body, tabs);
+    break;
   }
   case NODE_IF:
   {
@@ -165,18 +243,18 @@ void debug_node(AstNode* node)
   case NODE_RETURN:
   {
     printf("return ");
-    debug_node(node->return_.value);
+    debug_node(node->return_.value, tabs);
     printf(";\n");
     break;
   }
   case NODE_VARIABLE:
   {
-    String literal = node->variable.name->literal;
+    String literal = *node->variable.name;
     printf("%.*s", (i32)literal.len, literal.buffer);
     if (node->variable.value != NULL)
     {
       printf(" = ");
-      debug_node(node->variable.value);
+      debug_node(node->variable.value, 0);
     }
     break;
   }
@@ -186,17 +264,44 @@ void debug_node(AstNode* node)
     if (node->declaration.variables)
     {
       AstNode* down = node->declaration.variables;
-      do
-      {
-        debug_node(down);
-        down = down->next;
-      } while (down);
+      debug_node(down, 0);
       printf(";\n");
       break;
     }
   }
+  case NODE_UNION:
+  {
+    UnionNode* strukt = &node->union_;
+    printf("union %.*s {\n", (i32)strukt->name->len, strukt->name->buffer);
+    StructField* field = strukt->fields;
+    while (field)
+    {
+      print_tabs(tabs + 1);
+      debug_data_type(field->type);
+      printf(" %.*s;", (i32)field->name->len, field->name->buffer);
+      field = field->next;
+
+      printf("\n");
+    }
+    printf("};\n");
+    break;
+  }
   case NODE_STRUCT:
   {
+    StructNode* strukt = &node->struct_;
+    printf("struct %.*s {\n", (i32)strukt->name->len, strukt->name->buffer);
+    StructField* field = strukt->fields;
+    while (field)
+    {
+      print_tabs(tabs + 1);
+      debug_data_type(field->type);
+      printf(" %.*s;", (i32)field->name->len, field->name->buffer);
+      field = field->next;
+
+      printf("\n");
+    }
+    printf("};\n");
+    break;
   }
   case NODE_DEFINE:
   {
@@ -207,7 +312,7 @@ void debug_node(AstNode* node)
   case NODE_BINARY:
   {
     printf("(");
-    debug_node(node->binary.left);
+    debug_node(node->binary.left, 0);
     switch (node->binary.op)
     {
     case TOKEN_PLUS:
@@ -236,7 +341,7 @@ void debug_node(AstNode* node)
       exit(1);
     }
     }
-    debug_node(node->binary.right);
+    debug_node(node->binary.right, 0);
     printf(")");
     break;
   }
@@ -248,6 +353,50 @@ void debug_node(AstNode* node)
   }
   case NODE_COMPARISON:
   {
+
+    printf("(");
+    debug_node(node->comparison.left, 0);
+    switch (node->comparison.op)
+    {
+    case TOKEN_LESS:
+    {
+      printf(" < ");
+      break;
+    }
+    case TOKEN_LESS_EQUAL:
+    {
+      printf(" <= ");
+      break;
+    }
+    case TOKEN_GREATER:
+    {
+      printf(" > ");
+      break;
+    }
+    case TOKEN_GREATER_EQUAL:
+    {
+      printf(" >= ");
+      break;
+    }
+    case TOKEN_EQUAL_EQUAL:
+    {
+      printf(" == ");
+      break;
+    }
+    case TOKEN_BANG_EQUAL:
+    {
+      printf(" != ");
+      break;
+    }
+    default:
+    {
+      printf("Unknown token %s\n", get_token_type_string(node->binary.op));
+      exit(1);
+    }
+    }
+    debug_node(node->comparison.right, 0);
+    printf(")");
+    break;
   }
   case NODE_DOT:
   {
@@ -269,6 +418,10 @@ void debug_node(AstNode* node)
   }
   case NODE_POSTFIX:
   {
+    PostfixNode* postfix = &node->postfix;
+    debug_node(postfix->node, 0);
+    debug_token(postfix->postfix);
+    break;
   }
   case NODE_UNARY:
   {
@@ -285,5 +438,10 @@ void debug_node(AstNode* node)
   case NODE_GOTO:
   {
   }
+  }
+
+  if (node->next)
+  {
+    debug_node(node->next, tabs);
   }
 }

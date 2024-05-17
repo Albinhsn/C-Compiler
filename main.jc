@@ -1,5 +1,34 @@
 
+enum Foo{
+  FOO,
+  FOO = 2,
+  FOO = 0xFF,
+  FOO = 02
+};
+
+struct Foo{
+  int a;
+};
+union Foo{
+  int a;
+};
+
 int main(){
-  {
+  int a = 5;
+  int b;
+
+  do{
+    int a = 5;
+  }while(true);
+
+  while(true){
+    int a = 5;
+  }
+  for(;;){
+
+  }
+  for(int i = 0; i < 5; i++){
+
   }
 }
+

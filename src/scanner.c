@@ -8,6 +8,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+
 void error(const char* message)
 {
   printf("%s\n", message);
