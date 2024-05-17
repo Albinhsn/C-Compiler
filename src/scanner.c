@@ -8,7 +8,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-
 void error(const char* message)
 {
   printf("%s\n", message);
@@ -158,47 +157,13 @@ static Token* parse_string(Scanner* scanner)
 
 static TokenType get_keyword(String literal)
 {
-  static const char* keywords[] = {"auto",     "break",  "case",     "char",  "const",    "continue", "default",
-                                   "do",    "double", "else",   "enum",   "extern", "float",  "for",     "goto",  "if",       "inline", "int",      "long",  "register", "restrict", "return",
-                                   "short", "signed", "sizeof", "static", "struct", "switch", "typedef", "union", "unsinged", "void",   "volatile", "while", "_Bool",    "_Complex", "_Imaginary"};
+  static const char* keywords[] = {"auto",   "break",  "case",    "char",   "const",    "continue", "default",  "do",       "double", "else",     "enum",      "extern", "float",
+                                   "for",    "goto",   "if",      "inline", "int",      "long",     "register", "restrict", "return", "short",    "signed",    "sizeof", "static",
+                                   "struct", "switch", "typedef", "union",  "unsinged", "void",     "volatile", "while",    "_Bool",  "_Complex", "_Imaginary"};
   static TokenType   tokens[]   = {
-      TOKEN_AUTO,
-      TOKEN_BREAK,
-      TOKEN_CASE,
-      TOKEN_CHAR,
-      TOKEN_CONST,
-      TOKEN_CONTINUE,
-      TOKEN_DEFAULT,
-      TOKEN_DO,
-      TOKEN_DOUBLE,
-      TOKEN_ELSE,
-      TOKEN_ENUM,
-      TOKEN_EXTERN,
-      TOKEN_FLOAT,
-      TOKEN_FOR,
-      TOKEN_GOTO,
-      TOKEN_IF,
-      TOKEN_INLINE,
-      TOKEN_INT,
-      TOKEN_LONG,
-      TOKEN_REGISTER,
-      TOKEN_RESTRICT,
-      TOKEN_RETURN,
-      TOKEN_SHORT,
-      TOKEN_SIGNED,
-      TOKEN_SIZEOF,
-      TOKEN_STATIC,
-      TOKEN_STRUCT,
-      TOKEN_SWITCH,
-      TOKEN_TYPEDEF,
-      TOKEN_UNION,
-      TOKEN_UNSIGNED,
-      TOKEN_VOID,
-      TOKEN_VOLATILE,
-      TOKEN_WHILE,
-      TOKEN_BOOL,
-      TOKEN_COMPLEX,
-      TOKEN_IMAGINARY,
+      TOKEN_AUTO,   TOKEN_BREAK,  TOKEN_CASE,    TOKEN_CHAR,   TOKEN_CONST,    TOKEN_CONTINUE, TOKEN_DEFAULT,  TOKEN_DO,       TOKEN_DOUBLE, TOKEN_ELSE,    TOKEN_ENUM,      TOKEN_EXTERN, TOKEN_FLOAT,
+      TOKEN_FOR,    TOKEN_GOTO,   TOKEN_IF,      TOKEN_INLINE, TOKEN_INT,      TOKEN_LONG,     TOKEN_REGISTER, TOKEN_RESTRICT, TOKEN_RETURN, TOKEN_SHORT,   TOKEN_SIGNED,    TOKEN_SIZEOF, TOKEN_STATIC,
+      TOKEN_STRUCT, TOKEN_SWITCH, TOKEN_TYPEDEF, TOKEN_UNION,  TOKEN_UNSIGNED, TOKEN_VOID,     TOKEN_VOLATILE, TOKEN_WHILE,    TOKEN_BOOL,   TOKEN_COMPLEX, TOKEN_IMAGINARY,
   };
   u32 number_of_keywords = ArrayCount(keywords);
   for (u32 i = 0; i < number_of_keywords; i++)
@@ -407,6 +372,13 @@ Token* parse_token(Scanner* scanner)
 
   switch (current)
   {
+  case ':':
+  {
+    String literal = {};
+    literal.buffer = ":";
+    literal.len    = 1;
+    return create_token(scanner->arena, TOKEN_COLON, literal, scanner->line, scanner->index);
+  }
   case '{':
   {
     String literal = {};

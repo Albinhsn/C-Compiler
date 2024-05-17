@@ -86,8 +86,8 @@ enum TokenType
   TOKEN_AND_BIT,
   TOKEN_OR_BIT,
   TOKEN_XOR,
-  TOKEN_EOF
-
+  TOKEN_EOF,
+  TOKEN_COLON
 };
 typedef enum TokenType TokenType;
 

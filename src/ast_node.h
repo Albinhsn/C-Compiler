@@ -26,6 +26,7 @@ typedef enum
   NODE_CAST,
   NODE_COMPARISON,
   NODE_DOT,
+  NODE_SWITCH,
   NODE_GROUPED,
   NODE_INDEX,
   NODE_CONSTANT,
@@ -136,7 +137,7 @@ typedef BinaryNode ComparisonNode;
 
 typedef struct
 {
-  String*   name;
+  String*  name;
   AstNode* value;
 } VariableNode;
 
@@ -193,7 +194,26 @@ typedef struct
   StructField* fields;
   String*      name;
 } StructNode;
-typedef StructNode UnionNode;
+typedef StructNode    UnionNode;
+
+typedef struct IfBlock IfBlock;
+struct IfBlock{
+  AstNode * condition;
+  AstNode * body;
+  IfBlock * next;
+};
+
+typedef struct IfNode IfNode;
+struct IfNode
+{
+  IfBlock*  blocks;
+  AstNode* else_;
+};
+
+typedef struct {
+  AstNode * condition;
+  AstNode * block;
+} SwitchNode;
 
 struct AstNode
 {
@@ -201,6 +221,7 @@ struct AstNode
   AstNode*    next;
   union
   {
+    IfNode          if_;
     ConstantNode    constant;
     FunctionNode    function;
     BinaryNode      binary;
@@ -217,6 +238,7 @@ struct AstNode
     PostfixNode     postfix;
     StructNode      struct_;
     UnionNode       union_;
+    SwitchNode switch_;
   };
 };
 

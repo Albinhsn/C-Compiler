@@ -628,10 +628,97 @@ static void parse_union(Parser* parser)
   consume(parser, TOKEN_SEMICOLON, "Expected '}' after struct declaration");
 }
 
+static void parse_if_block(Parser* parser, IfBlock* block)
+{
+  consume(parser, TOKEN_LEFT_PAREN, "Expected '(' for if condition");
+  block->condition = ALLOC_NODE(parser);
+  parser->node     = block->condition;
+
+  parse_expression(parser, PREC_ASSIGNMENT);
+  consume(parser, TOKEN_RIGHT_PAREN, "Expected ')' after if condition");
+  block->body  = ALLOC_NODE(parser);
+  parser->node = block->body;
+  parse_stmt(parser);
+}
+
+static void parse_if(Parser* parser)
+{
+
+  AstNode* node    = parser->node;
+  node->type       = NODE_IF;
+  node->if_.blocks = ALLOC(parser, IfBlock);
+  IfBlock* blocks  = node->if_.blocks;
+  advance(parser);
+  parse_if_block(parser, blocks);
+
+  while (match(parser, TOKEN_ELSE))
+  {
+    if (match(parser, TOKEN_IF))
+    {
+      blocks->next = ALLOC(parser, IfBlock);
+      blocks       = blocks->next;
+      parse_if_block(parser, blocks);
+    }
+    else
+    {
+      node->if_.else_ = ALLOC_NODE(parser);
+      parser->node    = node->if_.else_;
+      parse_stmt(parser);
+      break;
+    }
+  }
+}
+
+static void parse_switch(Parser* parser)
+{
+  advance(parser);
+  consume(parser, TOKEN_LEFT_PAREN, "Expect '(' after switch");
+  AstNode* node           = parser->node;
+  node->type              = NODE_SWITCH;
+  node->switch_.condition = ALLOC_NODE(parser);
+
+  parser->node            = node->switch_.condition;
+  parse_expression(parser, PREC_ASSIGNMENT);
+  consume(parser, TOKEN_RIGHT_PAREN, "Expect ')' after switch condition");
+  node->switch_.block = ALLOC_NODE(parser);
+  parser->node        = node->switch_.block;
+  parse_stmt(parser);
+}
+
+static void parse_case(Parser* parser)
+{
+  advance(parser);
+}
+
+static void parse_default(Parser* parser)
+{
+  advance(parser);
+}
+
 static void parse_stmt(Parser* parser)
 {
   switch (CURRENT_TYPE(parser))
   {
+  case TOKEN_IF:
+  {
+    parse_if(parser);
+    break;
+  }
+  case TOKEN_CASE:
+  {
+    parse_case(parser);
+    break;
+  }
+  case TOKEN_DEFAULT:
+  {
+    parse_default(parser);
+    break;
+  }
+  case TOKEN_SWITCH:
+  {
+    parse_switch(parser);
+    break;
+  }
   case TOKEN_ENUM:
   {
     parse_enum(parser);

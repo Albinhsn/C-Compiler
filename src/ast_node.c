@@ -117,6 +117,14 @@ void debug_block(AstNode* block, int tabs)
   printf("}\n");
 }
 
+static void debug_if_block(IfBlock* block, int tabs)
+{
+  printf("(");
+  debug_node(block->condition, 0);
+  printf(")\n");
+  debug_node(block->body, tabs + 1);
+}
+
 void debug_node(AstNode* node, int tabs)
 {
   print_tabs(tabs);
@@ -239,6 +247,23 @@ void debug_node(AstNode* node, int tabs)
   }
   case NODE_IF:
   {
+    IfNode* if_node = &node->if_;
+    printf("if");
+    debug_if_block(if_node->blocks, tabs);
+
+    IfBlock* block = if_node->blocks->next;
+    while (block)
+    {
+      printf("else if");
+      debug_if_block(block, tabs);
+      block = block->next;
+    }
+
+    if (if_node->else_)
+    {
+      debug_node(if_node->else_, tabs);
+    }
+        break;
   }
   case NODE_RETURN:
   {
